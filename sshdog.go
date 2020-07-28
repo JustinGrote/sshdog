@@ -16,12 +16,14 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"github.com/GeertJohan/go.rice"
-	"github.com/matir/sshdog/daemon"
 	"os"
 	"strconv"
 	"strings"
+
+	rice "github.com/GeertJohan/go.rice"
+	"github.com/matir/sshdog/daemon"
 )
 
 type Debugger bool
@@ -72,9 +74,11 @@ func beQuiet(box *rice.Box) bool {
 }
 
 var mainBox *rice.Box
+var pipeName = flag.String("pipeName", "", "Specify the pipe to attach to by default for the powershell subsystem")
 
 func main() {
 	mainBox = mustFindBox()
+	flag.Parse()
 
 	if beQuiet(mainBox) {
 		dbg = false

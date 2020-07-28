@@ -17,9 +17,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/google/shlex"
-	"github.com/matir/sshdog/pty"
-	"golang.org/x/crypto/ssh"
 	"io"
 	"net"
 	"os"
@@ -27,6 +24,10 @@ import (
 	"os/user"
 	"runtime"
 	"sync"
+
+	"github.com/google/shlex"
+	"github.com/matir/sshdog/pty"
+	"golang.org/x/crypto/ssh"
 )
 
 // Handling for a single incoming connection
@@ -221,6 +222,25 @@ func (conn *ServerConn) HandleSessionChannel(wg *sync.WaitGroup, newChan ssh.New
 						req.Reply(false, []byte{})
 					}
 				}
+			}
+			return
+		case "subsystem":
+			execReq := &ExecRequest{}
+			ssh.Unmarshal(req.Payload, execReq)
+
+			if execReq.Cmd == "powershell" {
+				cmd := []string{"pwsh", "-sshs", "-nologo", "-noprofile"}
+				conn.ExecuteForChannel(cmd, ch)
+			}
+			if execReq.Cmd == "shell" {
+				cmd := []string{"/bin/sh"}
+				conn.ExecuteForChannel(cmd, ch)
+			}
+			if execReq.Cmd == "psrp" {
+				
+
+			} else {
+				dbg.Debug("Unknown subsystem: %v", execReq.Cmd)
 			}
 			return
 		default:

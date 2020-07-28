@@ -19,13 +19,14 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"golang.org/x/crypto/ssh"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"golang.org/x/crypto/ssh"
 )
 
 const (
