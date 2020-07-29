@@ -101,7 +101,6 @@ func (s *Server) serveLoop() error {
 		s.done <- true
 	}()
 	for {
-		dbg.Debug("select...")
 		select {
 		case conn, ok := <-acceptChan:
 			if ok {

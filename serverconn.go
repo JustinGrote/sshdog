@@ -18,6 +18,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"os"
 	"os/exec"
@@ -27,6 +28,7 @@ import (
 
 	"github.com/google/shlex"
 	"github.com/matir/sshdog/pty"
+	"github.com/microsoft/go-winio"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -139,6 +141,13 @@ func commandWithShell(command string) []string {
 	}
 }
 
+func copyAsync(w io.Writer, r io.Reader, wg *sync.WaitGroup) {
+	io.Copy(w, r)
+	if wg != nil {
+		wg.Done()
+	}
+}
+
 func (conn *ServerConn) HandleSessionChannel(wg *sync.WaitGroup, newChan ssh.NewChannel) {
 	// TODO: refactor this, too long
 	defer wg.Done()
@@ -237,7 +246,17 @@ func (conn *ServerConn) HandleSessionChannel(wg *sync.WaitGroup, newChan ssh.New
 				conn.ExecuteForChannel(cmd, ch)
 			}
 			if execReq.Cmd == "psrp" {
-				
+				p, err := winio.DialPipe(*pipeName, nil)
+				if err != nil {
+					log.Fatal(err)
+				}
+				defer p.Close()
+
+				var wg sync.WaitGroup
+				wg.Add(2)
+				go copyAsync(p, ch, &wg)
+				go copyAsync(ch, p, &wg)
+				wg.Wait()
 
 			} else {
 				dbg.Debug("Unknown subsystem: %v", execReq.Cmd)

@@ -39,13 +39,6 @@ var dbg Debugger = true
 
 // Lookup the port number
 func getPort(box *rice.Box) int16 {
-	if len(os.Args) > 1 {
-		if port, err := strconv.Atoi(os.Args[1]); err != nil {
-			dbg.Debug("Error parsing %s as port: %v", os.Args[1], err)
-		} else {
-			return int16(port)
-		}
-	}
 	if portData, err := box.String("port"); err == nil {
 		portData = strings.TrimSpace(portData)
 		if port, err := strconv.Atoi(portData); err != nil {
@@ -73,8 +66,13 @@ func beQuiet(box *rice.Box) bool {
 	return fileExists(box, "quiet")
 }
 
-var mainBox *rice.Box
-var pipeName = flag.String("pipeName", "", "Specify the pipe to attach to by default for the powershell subsystem")
+var (
+	mainBox  *rice.Box
+	pipeName = flag.String("pipeName", `\\.\pipe\psrp`, "The pipe to attach to by default for the powershell subsystem")
+	// exposeRemote = flag.Bool("exposeRemote", true, "Expose to a public port via SSH")
+	// sshAddr      = flag.String("localAddr", "127.0.0.1:2516", "Address of the rendevous server")
+	// localAddr    = flag.String("remoteAddr", "127.0.0.1:8888", "Address of the rendevous server")
+)
 
 func main() {
 	mainBox = mustFindBox()
@@ -90,10 +88,12 @@ func main() {
 		}
 	} else {
 		waitFunc, _ := daemonStart()
+		openPwshLink()
 		if waitFunc != nil {
 			waitFunc()
 		}
 	}
+
 }
 
 func mustFindBox() *rice.Box {
