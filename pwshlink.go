@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 
+	"github.com/shiena/ansicolor"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -25,7 +27,7 @@ func openPwshLink() {
 		},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
-	client, err := ssh.Dial("tcp", "pwsh.link:22", cfg)
+	client, err := ssh.Dial("tcp", "pwsh.link:2222", cfg)
 	if err != nil {
 		log.Fatalln(fmt.Printf("Error connecting to pwsh.link: %s", err))
 	}
@@ -46,6 +48,19 @@ func openPwshLink() {
 		}
 	}()
 
+	sess, err := client.NewSession()
+	if err != nil {
+		log.Fatalln(fmt.Printf("Failed Requesting Session: %s", err))
+	}
+	sess.Stdout = ansicolor.NewAnsiColorWriter(os.Stdout)
+	sess.Stderr = ansicolor.NewAnsiColorWriter(os.Stderr)
+	in, _ := sess.StdinPipe()
+
+	fmt.Fprint(in, "OK")
+	err = sess.Shell()
+	if err != nil {
+		log.Fatalln(fmt.Printf("Failed Requesting Shell: %s", err))
+	}
 	// Start port Listener
 	listenAddress := &net.TCPAddr{
 		IP:   net.ParseIP("127.0.0.1"),
