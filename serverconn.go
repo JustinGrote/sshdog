@@ -28,7 +28,7 @@ import (
 
 	"github.com/google/shlex"
 	"github.com/matir/sshdog/pty"
-	"github.com/microsoft/go-winio"
+	"github.com/Microsoft/go-winio"
 	"golang.org/x/crypto/ssh"
 )
 
